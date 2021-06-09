@@ -84,17 +84,11 @@ X=np.array(X)
 X_features=np.array(X_features)
 #SHAP EXPLAINER
 #explainer = shap.LinearExplainer(est, X)
-explainer = shap.KernelExplainer(est.predict, X[0:2,:])
-shap_values = explainer.shap_values(X)# Estima los valores de shaply en el conjunto de datos de prueba
-#explicaciones globales
-#shap.summary_plot(shap_values, X, feature_names=X_features)
-#Lo de forzar es para casos individuales
-print("*************************************************************")
-print('Document id: %d' % i)
-print('Probability(stroke) =', est.predict_proba([X[i]])[0, 1])
-print('True class: %s' % class_names[y[i]])
-print("*************************************************************")
-shap.force_plot(explainer.expected_value,shap_values[i,:], X[i,:], feature_names=X_features, matplotlib=True)
-shap.plots._waterfall.waterfall_legacy(explainer.expected_value, shap_values[i,:], X[i,:], feature_names=X_features)
-#shap.decision_plot(explainer.expected_value, shap_values, X_features, ignore_warnings=True)
+explainer = shap.KernelExplainer(est.predict, X)
+shap_values = explainer.shap_values(X)
+import pickle
+with open('stroke-shap.pkl', 'wb') as fd:
+    pickle.dump([explainer, shap_values], fd)
 
+with open('stroke-shap.pkl', 'rb') as fd:
+    [explainer, shap_values] = pickle.load(fd)

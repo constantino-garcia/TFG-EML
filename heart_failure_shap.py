@@ -47,7 +47,10 @@ X_cat = oh_enc.fit_transform(X[categorical_idx]).todense()
 X = np.concatenate([X_cat, X_numerical], axis=1)
 X_features = np.concatenate([oh_enc.get_feature_names(), numerical_idx])
 
-plt.scatter(X[:,-2].flatten(),X[:,-4].flatten())
+colors=np.array(['blue', 'red'])[y]
+plt.scatter(np.array(X[:, -2]).flatten(), np.array(X[:, -4]).flatten(), c=colors,
+            alpha=0.4)
+plt.show()
 
 C = 0.025
 est = LogisticRegression(penalty='l1', C=C, random_state=RANDOM_SEED, solver='saga', max_iter=1000,
@@ -70,16 +73,10 @@ class_names=['healthy','heart_failure']
 X=np.array(X)
 X_features=np.array(X_features)
 #SHAP EXPLAINER
-explainer = shap.LinearExplainer(est, X)
-shap_values = explainer.shap_values(X)# Estima los valores de shaply en el conjunto de datos de prueba
-#explicaciones globales
-print("*************************************************************")
-print('Document id: %d' % i)
-print('Probability(heart_failure) =', est.predict_proba([X[i]])[0, 1])
-print('True class: %s' % class_names[y[i]])
-print("*************************************************************")
-#shap.summary_plot(shap_values, X, feature_names=X_features)
-#Lo de forzar es para casos individuales
-shap.force_plot(explainer.expected_value,shap_values[i,:], X[i,:], feature_names=X_features, matplotlib=True)
-shap.plots._waterfall.waterfall_legacy(explainer.expected_value, shap_values[i,:], X[i,:], feature_names=X_features)
-#shap.decision_plot(explainer.expected_value, shap_values, X_features, ignore_warnings=True)
+explainer = shap.KernelExplainer(est.predict, X)
+shap_values = explainer.shap_values(X)
+
+
+import pickle
+with open('heart_failure-shap.pkl', 'wb') as fd:
+    pickle.dump([explainer, shap_values], fd)
